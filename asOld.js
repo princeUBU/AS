@@ -20,21 +20,20 @@ const wordEnds = ',.;:)'; // punctuation at end of word
 const wordBegins = '(#$'; // special chars for beginning a word
 
 // limit for the length of texts
-const maxTextLength = 200;
+const maxTextLength=200;
 
-// list of all words as text, for conversion to integer indices, and output
-let allWords = [];
+// list of all words as text, for conversion to integer indices
+let words = [];
 
-// lists of all word transition indizes and weights
-// for each word its transitions have an index and a weight, in two arrays
-// and a sum of all transition weights plus transition to end of text
-const allWordTransitionIndices = [];
-const allWordTransitionWeights = [];
-const allWordSumOfWeights = [];
+// textNode gives for a given word all words that can follow with their frequencies
+// key is the index to words, value the frequency
+// textNode.sum is the sum of all frequencies, including the possibility that the text ends
 
-const textStartTransitionIndices = [];
-const textStartTransitionWeights = [];
-let textStartSumOfWeights = 0;
+let textStartNode = {};
+textStartNode.sum = 0;
+
+// further textnodes are tied to words
+let textNodes = [];
 
 
 // utilities
@@ -70,14 +69,8 @@ fileInput.onchange = function() {
         if (currentFileNumber < files.length) {
             fileReader.readAsText(files[currentFileNumber]);
         } else {
-            console.log(allWords);
-            console.log(allWordTransitionIndices);
-            console.log(allWordTransitionWeights);
-            console.log(allWordSumOfWeights);
-
-            console.log(textStartTransitionIndices);
-            console.log(textStartTransitionWeights);
-            console.log(textStartSumOfWeights);
+            console.log(words);
+            console.log(textNodes);
         }
     };
 
@@ -148,16 +141,16 @@ function findIndex(word) {
     }
     // we are at the end of the word, if the node does not have an index we create one
     if (isUndefined(node.index)) {
-        node.index = allWords.length;
-        allWords.push(word);
-        allWordTransitionWeights.push([]);
-        allWordTransitionIndices.push([]);
-        allWordSumOfWeights.push(0);
+        node.index = words.length;
+        words.push(word);
+        const textNode = {};
+        textNode.sum = 0;
+        textNodes.push(textNode);
     }
     const index = node.index;
     // safety check
-    if (allWords[index] !== word) {
-        console.error('findIndex: word = "' + word + '", index= ' + index + ' but allWords[index]= "' + allWords[index]);
+    if (words[index] !== word) {
+        console.error('findIndex: word = "' + word + '", index= ' + index + ' but words[index]= "' + words[index]);
     }
     return index;
 }
@@ -183,63 +176,27 @@ function doWord(word) {
 // work with text as array of indices: make transition table
 //==================================================================
 
-// input is array of word indizes
-
 function doText(inputText) {
     console.log(inputText);
-    // only texts of at least two words
-    if (inputText.length >= 2) {
-        // the first word is special, rooted in textStart, which is not treated as a word
-        const wordIndex = inputText[0];
-        textStartSumOfWeights += 1;
-        let tableIndex = textStartTransitionIndices.indexOf(wordIndex);
-        if (tableIndex < 0) {
-            tableIndex = textStartTransitionIndices.length;
-            textStartTransitionIndices.push(wordIndex);
-            textStartTransitionWeights.push(0);
+    let node = textStartNode;
+    for (var i = 0; i < inputText.length; i++) {
+        const wordIndex = inputText[i];
+        const wordIndexString = wordIndex.toString(32);
+        if (isUndefined(node[wordIndexString])) {
+            // add the connection to this word, initialize frequency
+            node[wordIndexString] = 0;
         }
-        textStartTransitionWeights[tableIndex] += 1;
-        // the other words
-        for (var i = 1; i < inputText.length; i++) {
-            // index to word table with transition from lastWord to newWord
-            const lastWordIndex = inputText[i - 1];
-            // index for the new word, that defines the transition
-            const newWordIndex = inputText[i];
-            // update the transition tables of the last word
-            allWordSumOfWeights[lastWordIndex] += 1;
-            const wordTransitionIndices = allWordTransitionIndices[lastWordIndex];
-            const wordTransitionWeights = allWordTransitionWeights[lastWordIndex];
-            let tableIndex = wordTransitionIndices.indexOf(newWordIndex);
-            if (tableIndex < 0) {
-                tableIndex = wordTransitionIndices.length;
-                wordTransitionIndices.push(newWordIndex);
-                wordTransitionWeights.push(0);
-            }
-            wordTransitionWeights[tableIndex] += 1;
-        }
-        // for the end we increase the sum of transitions of the last word
-        allWordSumOfWeights[inputText[inputText.length - 1]] += 1;
+        // update node
+        node[wordIndexString] += 1;
+        node.sum += 1;
+        // advance to next node
+        node = textNodes[wordIndexString];
     }
+    // the text is finished, increment sum of last node to account for termination
+    node.sum += 1;
 }
 
-// for all choosing transitions
-
-// selecting one transition, random, depening on total sum and weights
-// returns index to transitionIndexTable if result>=0
-// result=-1 means end of text
-function randomTransitionIndex(sum, transitionWeights) {
-    let selector = 1 + Math.floor(sum * Math.random());
-    const length = transitionWeights.length;
-    for (var i = 0; i < length; i++) {
-        selector -= transitionWeights[i];
-        if (selector <= 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// generate text with transitions between single words
+// generate with transitions between single words
 //===================================================================
 
 const generateSingles = document.querySelector('#generate-singles');
@@ -255,29 +212,5 @@ copyButton.onclick = function() {
 
 generateSingles.onclick = function() {
     console.log('genera');
-    let text = '';
-    while ((text.length === 0) || (text.length > maxTextLength)) {
-        text = createTextSingleWords();
-    }
-    textOutput.innerText = text;
+    pOutput.innerText = "neues";
 };
-
-// actually generates the text
-function createTextSingleWords() {
-    if (textStartSumOfWeights === 0) {
-        return 'First read something...';
-    }
-    let text = 'a new text';
-
-    /*
-        const allWordTransitionIndices = [];
-    const allWordTransitionWeights = [];
-    const allWordSumOfWeights = [];
-
-    const textStartTransitionIndices = [];
-    const textStartTransitionWeights = [];
-    let textStartSumOfWeights = 0;
-    */
-
-    return text;
-}
