@@ -2,7 +2,7 @@
 
 // using word pairs - switch
 //==========================
-const usePairs=true;
+const usePairs = true;
 
 // data for representing the texts
 //=============================================
@@ -67,14 +67,19 @@ allSumOfWeights.push(0);
 // each possible transition between two words is a word pair
 // we can use transitions from pairs to words similarly as before
 // all pair transition data is now in
-if (usePairs){
-const allPairTransitionIndices=[];
-const allPairTransitionWeights=[];
-const allPairSumOfWeights=[];
-allPairTransitionIndices.push([]);
-allPairTransitionWeights.push([]);
-allPairSumOfWeights.push([]);
+    const allPairTransitionIndices = [];
+    const allPairTransitionWeights = [];
+    const allPairSumOfWeights = [];
+
+// while analyzing text
+// create data for the fictuous word that begins a text
+if (usePairs) {
+    allPairTransitionIndices.push([]);
+    allPairTransitionWeights.push([]);
+    allPairSumOfWeights.push([]);
 }
+
+
 
 // wordPairWhatever=allPairWhatever[wordIndex] gives the transition data for the pairs of words beginning with the word given by wordIndex
 // pairWhatever=wordPairWhatever[nextWordIndex] gives all transitions from the (word, nextWord) pair
@@ -184,10 +189,10 @@ function findIndex(word) {
         allTransitionWeights.push([]);
         allTransitionIndices.push([]);
         allSumOfWeights.push(0);
-        if (usePairs){
-allPairTransitionIndices.push([]);
-allPairTransitionWeights.push([]);
-allPairSumOfWeights.push([]);
+        if (usePairs) {
+            allPairTransitionIndices.push([]);
+            allPairTransitionWeights.push([]);
+            allPairSumOfWeights.push([]);
         }
     }
     const index = node.index;
@@ -226,16 +231,16 @@ function doText(inputText) {
     // only texts of at least two words
     if (inputText.length >= 2) {
         // begin of text data 
-            // index for the new word, that defines the transition
+        // index for the new word, that defines the transition
         let newWordIndex = 0;
-            // index to word table with transition from lastWord to newWord
-        let lastWordIndex = 0;
+        // index to word table with transition from lastWord to newWord
+        let wordIndex = 0;
         for (var i = 0; i < inputText.length; i++) {
             newWordIndex = inputText[i];
             // update the transition tables of the last word
-            allSumOfWeights[lastWordIndex] += 1;
-            const wordTransitionIndices = allTransitionIndices[lastWordIndex];
-            const wordTransitionWeights = allTransitionWeights[lastWordIndex];
+            allSumOfWeights[wordIndex] += 1;
+            const wordTransitionIndices = allTransitionIndices[wordIndex];
+            const wordTransitionWeights = allTransitionWeights[wordIndex];
             // now we have to find the index of transition to the new word
             let tableIndex = wordTransitionIndices.indexOf(newWordIndex);
             if (tableIndex < 0) {
@@ -245,10 +250,10 @@ function doText(inputText) {
                 wordTransitionWeights.push(0);
             }
             wordTransitionWeights[tableIndex] += 1;
-            lastWordIndex = newWordIndex;
+            wordIndex = newWordIndex;
         }
         // for the end we increase the sum of transitions of the last word
-        allSumOfWeights[lastWordIndex] += 1;
+        allSumOfWeights[wordIndex] += 1;
     }
 }
 
@@ -274,8 +279,8 @@ function randomTransitionIndex(sum, transitionWeights) {
 
 const generateSingles = document.querySelector('#generate-singles');
 const generatePairs = document.querySelector('#generate-pairs');
-if (! usePairs){
-    generatePairs.style.display='none';
+if (!usePairs) {
+    generatePairs.style.display = 'none';
 }
 const textOutput = document.querySelector('#text-output');
 //pOutput.style.border='solid grey';
@@ -302,17 +307,17 @@ function createTextSingleWords() {
         return 'First read something...';
     }
     let text = '';
-    let lastWordIndex = 0;
+    let wordIndex = 0;
     let newWordIndex = 0;
-    while (lastWordIndex >= 0) {
-        const sumOfWeights = allSumOfWeights[lastWordIndex];
-        const transitionWeights = allTransitionWeights[lastWordIndex];
+    while (wordIndex >= 0) {
+        const sumOfWeights = allSumOfWeights[wordIndex];
+        const transitionWeights = allTransitionWeights[wordIndex];
         // make random transition to a new word
         // choose the transition
         const tableIndex = randomTransitionIndex(sumOfWeights, transitionWeights);
         if (tableIndex >= 0) {
             // transition to a new word, get its index from the tables
-            const transitionIndices = allTransitionIndices[lastWordIndex];
+            const transitionIndices = allTransitionIndices[wordIndex];
             newWordIndex = transitionIndices[tableIndex];
             // and add to text, with space
             text += ' ' + words[newWordIndex];
@@ -320,7 +325,7 @@ function createTextSingleWords() {
             // terminate, no new word
             newWordIndex = -1;
         }
-        lastWordIndex = newWordIndex;
+        wordIndex = newWordIndex;
     }
     return text;
 }
