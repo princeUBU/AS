@@ -89,7 +89,7 @@ const wordsTransitionSums = [0];
 // each integer is the index for the word reached by the transition
 // this array defines all word pairs of the text
 // the first word has not yet any transition, thus an array with an empty array element
-const wordsTransitionIndices = [
+const wordsTransitionTargets = [
     []
 ];
 
@@ -97,7 +97,7 @@ const wordsTransitionIndices = [
 //------------------------------------------------
 
 // pairs of words (wordIndex, newWordIndex) result from 
-// wordsTransitionIndices[wordindex] [tableIndex(wordIndex,newWordIndex)] = newWordIndex
+// wordsTransitionTargets[wordindex] [transitionIndex(wordIndex,newWordIndex)] = newWordIndex
 
 // an array of integers
 // each integer defines a word pair
@@ -128,7 +128,7 @@ const pairsTransitionSums = [0];
 // an array of integer arrays
 // each integer is the index for the word reached by the transition
 // the root pair has not yet any transition
-const pairsTransitionIndices = [
+const pairsTransitionTargets = [
     []
 ];
 
@@ -241,7 +241,7 @@ function findIndex(word) {
             wordsMoreWords.push([]);
             // add transition data, word to word
             wordsTransitionWeights.push([]);
-            wordsTransitionIndices.push([]);
+            wordsTransitionTargets.push([]);
             wordsTransitionSums.push(0);
         }
         wordIndex = moreWords[branchIndex];
@@ -285,21 +285,21 @@ function doText(inputText) {
         for (var i = 0; i < inputText.length; i++) {
             nextWordIndex = inputText[i];
             // update the transition tables of the last word
-            const transitionIndices = wordsTransitionIndices[wordIndex];
-            const transitionWeights = wordsTransitionWeights[wordIndex];
+            let transitionTargets = wordsTransitionTargets[wordIndex];
+            let transitionWeights = wordsTransitionWeights[wordIndex];
             // now we have to find the index of transition to the new word
-            let tableIndex = transitionIndices.indexOf(nextWordIndex);
-            if (tableIndex < 0) {
+            let transitionIndex = transitionTargets.indexOf(nextWordIndex);
+            if (transitionIndex < 0) {
                 // it is missing, create new one
-                tableIndex = transitionIndices.length;
-                transitionIndices.push(nextWordIndex);
+                transitionIndex = transitionTargets.length;
+                transitionTargets.push(nextWordIndex);
                 transitionWeights.push(0);
                 if (usePairs) {
-                    // we have a new pair, its index is equal to tableIndex
+                    // we have a new pair, its index is equal to transitionIndex
                     pairs.push(wordIndex * maxWordsLength + nextWordIndex);
                 }
             }
-            transitionWeights[tableIndex] += 1;
+            transitionWeights[transitionIndex] += 1;
             wordsTransitionSums[wordIndex] += 1;
             wordIndex = nextWordIndex;
         }
@@ -343,11 +343,11 @@ function createTextSingleWords() {
         const transitionWeights = wordsTransitionWeights[wordIndex];
         // make random transition to a new word
         // choose the transition
-        const tableIndex = randomTransitionIndex(sumOfWeights, transitionWeights);
-        if (tableIndex >= 0) {
+        const transitionIndex = randomTransitionIndex(sumOfWeights, transitionWeights);
+        if (transitionIndex >= 0) {
             // transition to a new word, get its index from the tables
-            const transitionIndices = wordsTransitionIndices[wordIndex];
-            nextWordIndex = transitionIndices[tableIndex];
+            const transitionTargets = wordsTransitionTargets[wordIndex];
+            nextWordIndex = transitionTargets[transitionIndex];
             // and add to text
             if (wordIndex > 0) {
                 // with a space after the first word
