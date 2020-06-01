@@ -1,3 +1,5 @@
+Note: transition weights not need to be integer. But is is easiest to use unit weights for new connections.
+To partially forget old texts, we can multiply all transition weights by a small factor < 1 !!
 
 For indexing words:
 ===================		
@@ -35,9 +37,9 @@ wordsTransitionWeights =  [  .... , transitionWeights as Integer Array , ....]
                      																	|
 wordsTransitionSums =  [  .... , transitionSum as Integer , ....]	--> transitionSum ->|<-- random number
 																						|  ^ 
-wordsTransitionIndizes =  [  .... , transitionIndizes as Integer Array , ....]			|  | (indexOf)
+wordsTransitionIndices =  [  .... , transitionIndices as Integer Array , ....]			|  | (indexOf)
 																						V  |
-                     									transitionIndizes = [ ... , nextWordIndex , .....]
+                     									transitionIndices = [ ... , nextWordIndex , .....]
                      																    |  ^ 
 												                                        V  |
 												                                   nextWordIndex
@@ -49,7 +51,7 @@ first get a unique index for word pairs from firstWordIndex and secondWordIndex
 
 word pairs are similar as word transitions
 
-wordsSecondWord === wordTransitionIndices
+wordsSecondWords === wordTransitionIndices
 
 							        firstWordIndex
 					      		          |
