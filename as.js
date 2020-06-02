@@ -29,8 +29,9 @@ generateSingles.onclick = function() {
     let text = '';
     while ((text.length === 0) || (text.length > maxTextLength)) {
         text = createTextSingleWords();
+        console.log(isCopyOfInput(text));
     }
-    textOutput.innerText = text;
+    textOutput.textContent = decode(text);
 };
 
 const generatePairs = document.querySelector('#generate-pairs');
@@ -56,6 +57,12 @@ copyButton.onclick = function() {
 // each string is a word of the text the words are nodes of a tree
 // the collection of words has initially only an empty word (string) as root node
 const words = [''];
+
+// an array of integer arrays
+// each text becomes an array of indices
+// save texts to check if a result is a mere copy
+// initially no text, empty array
+const inputTexts=[];
 
 // an array of strings, 
 // each character of the strings characterizes a branch to a longer word
@@ -257,6 +264,7 @@ let inputText = [];
 function doWord(word) {
     if (word === endOfText) {
         // text is complete, analyze
+        inputTexts.push(inputText);
         doText(inputText);
     } else {
         const wordIndex = findIndex(word);
@@ -311,6 +319,42 @@ function doText(inputText) {
 // creating a text
 //=============================================================
 
+// check if a text is a copy of an input text
+// by comparing indices
+function isCopyOfInput(textIndices){
+const length=inputTexts.length;
+const textLength=textIndices.length;
+for (var textIndex=0;textIndex<length;textIndex++){
+    const inputText=inputTexts[textIndex];
+    if (textLength===inputText.length){
+        let isCopy=true;
+        for (var wordIndex=0;wordIndex<textLength;wordIndex++){
+            if (textIndices[wordIndex]!==inputText[wordIndex]){
+                isCopy=false;
+                break;
+            }
+        }
+        if (isCopy){
+            return true;
+        }
+    }
+}
+    return false;
+}
+
+// decoding an array of integer indices to words
+// as a string, insert spaces between words and add new line at end
+function decode(textIndices){
+    text='';
+    const textLengthM1=textIndices.length-1;
+for (var wordIndex=0;wordIndex<textLengthM1;wordIndex++){
+    text+=words[textIndices[wordIndex]]+' ';
+}
+text+=words[textIndices[textLengthM1]]+'\n';
+return text;
+}
+
+
 // selecting one transition, random, depending on total sum and weights
 // returns index to a transitionIndexTable if result>=0
 // result=-1 means end of text
@@ -326,19 +370,27 @@ function randomTransitionIndex(sum, transitionWeights) {
     return -1;
 }
 
+
+
+
+
+
 // transitions between single words
 //========================================
+
+// returns text as an array of word indices
 
 function createTextSingleWords() {
     if (wordsTransitionSums[0] === 0) {
         return 'First read something...';
     }
-    let text = '';
+    let textIndices = [];
     // index to word table with transition from word to nextWord
     let wordIndex = 0;
     // index for the next word, that defines the transition
     let nextWordIndex = 0;
-    while (wordIndex >= 0) {
+    // do transitions until there is no transition to a word => end of text
+    while (true) {
         const sumOfWeights = wordsTransitionSums[wordIndex];
         const transitionWeights = wordsTransitionWeights[wordIndex];
         // make random transition to a new word
@@ -349,16 +401,16 @@ function createTextSingleWords() {
             const transitionTargets = wordsTransitionTargets[wordIndex];
             nextWordIndex = transitionTargets[transitionIndex];
             // and add to text
-            if (wordIndex > 0) {
-                // with a space after the first word
-                text += ' ';
-            }
-            text += words[nextWordIndex];
+            textIndices.push(nextWordIndex);
         } else {
-            // terminate, no new word
-            nextWordIndex = -1;
+               return textIndices;
         }
         wordIndex = nextWordIndex;
     }
-    return text;
 }
+
+
+inputTexts.push([1,2])
+console.log(isCopyOfInput([1,2]))
+console.log(isCopyOfInput([1]))
+console.log(isCopyOfInput([1,3]))
