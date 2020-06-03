@@ -62,7 +62,7 @@ const words = [''];
 // each text becomes an array of indices
 // save texts to check if a result is a mere copy
 // initially no text, empty array
-const inputTexts=[];
+const inputTexts = [];
 
 // an array of strings, 
 // each character of the strings characterizes a branch to a longer word
@@ -226,6 +226,59 @@ function doChar(char) {
 
 // make a list of words, index the words, transform text into an array of integers
 
+// using a hash table
+// get a unique integer for each char
+let chars = ''; // table for the charaacters, is initially empty
+
+function integerOfChar(char) {
+    result = chars.indexOf(char);
+    if (result < 0) {
+        result = chars.length;
+        chars += char;
+    }
+    return result;
+}
+
+// the word hash table is an array of integer arrys, thus no problems with collision
+// integers are indices to the words array
+const wordHashTable = [];
+// its length is about the number of words, a prime numer ?
+wordHashTable.length = 10067;
+// factor for combining the character integer values, about the number of different chars
+// should not be a divisor of the hash table length
+const hashFactor = 85;
+
+function findIndexWithHash(word) {
+    var result, i;
+    const hashTableLength = wordHashTable.length;
+    let index = 0;
+    for (i = 0; i < word.length; i++) {
+        index = (index * hashFactor + integerOfChar(word.charAt(i))) % hashTableLength;
+    }
+    if (isUndefined(wordHashTable[index])) {
+        wordHashTable[index] = [];
+    }
+    const hashResult = wordHashTable[index];
+    console.log(hashResult)
+    result = -1;
+    for (i = 0; i < hashResult.length; i++) {
+        if (words[hashResult[i]] === word) {
+            result = hashResult[i];
+            break;
+        }
+    }
+    if (result < 0) {
+        result = words.length;
+        hashResult.push(result);
+        words.push(word);
+        // add transition data, word to word
+        wordsTransitionWeights.push([]);
+        wordsTransitionTargets.push([]);
+        wordsTransitionSums.push(0);
+    }
+    return result;
+}
+
 // find rapidly the index of a word from a tree, add word to list of words if not there, add a textNode
 function findIndex(word) {
     let wordIndex = 0; // root
@@ -321,37 +374,37 @@ function doText(inputText) {
 
 // check if a text is a copy of an input text
 // by comparing indices
-function isCopyOfInput(textIndices){
-const length=inputTexts.length;
-const textLength=textIndices.length;
-for (var textIndex=0;textIndex<length;textIndex++){
-    const inputText=inputTexts[textIndex];
-    if (textLength===inputText.length){
-        let isCopy=true;
-        for (var wordIndex=0;wordIndex<textLength;wordIndex++){
-            if (textIndices[wordIndex]!==inputText[wordIndex]){
-                isCopy=false;
-                break;
+function isCopyOfInput(textIndices) {
+    const length = inputTexts.length;
+    const textLength = textIndices.length;
+    for (var textIndex = 0; textIndex < length; textIndex++) {
+        const inputText = inputTexts[textIndex];
+        if (textLength === inputText.length) {
+            let isCopy = true;
+            for (var wordIndex = 0; wordIndex < textLength; wordIndex++) {
+                if (textIndices[wordIndex] !== inputText[wordIndex]) {
+                    isCopy = false;
+                    break;
+                }
+            }
+            if (isCopy) {
+                return true;
             }
         }
-        if (isCopy){
-            return true;
-        }
     }
-}
     return false;
 }
 
 // decoding an array of integer indices to words
 // as a string, insert spaces between words and add new line at end
-function decode(textIndices){
-    text='';
-    const textLengthM1=textIndices.length-1;
-for (var wordIndex=0;wordIndex<textLengthM1;wordIndex++){
-    text+=words[textIndices[wordIndex]]+' ';
-}
-text+=words[textIndices[textLengthM1]]+'\n';
-return text;
+function decode(textIndices) {
+    text = '';
+    const textLengthM1 = textIndices.length - 1;
+    for (var wordIndex = 0; wordIndex < textLengthM1; wordIndex++) {
+        text += words[textIndices[wordIndex]] + ' ';
+    }
+    text += words[textIndices[textLengthM1]] + '\n';
+    return text;
 }
 
 
@@ -403,14 +456,17 @@ function createTextSingleWords() {
             // and add to text
             textIndices.push(nextWordIndex);
         } else {
-               return textIndices;
+            return textIndices;
         }
         wordIndex = nextWordIndex;
     }
 }
 
 
-inputTexts.push([1,2])
-console.log(isCopyOfInput([1,2]))
-console.log(isCopyOfInput([1]))
-console.log(isCopyOfInput([1,3]))
+console.log(findIndexWithHash('blabla'))
+console.log(findIndexWithHash('blabla'))
+console.log(findIndexWithHash('blabla'))
+console.log(words[findIndexWithHash('blabla')])
+
+console.log(findIndexWithHash('blablabla'))
+console.log(words)
