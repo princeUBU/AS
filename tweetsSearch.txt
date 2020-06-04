@@ -221,3 +221,6 @@ filter:consumer_video
  	--------------------------------
 filter:pro_video
 	   Twitter pro video (Amplify) only   
+
+
+https://twitter.com/search?q=(from%3ArealDonaldTrump)%20since%3A2020-05-01%20-filter%3Areplies%20-filter%3Aretweets%20-filter%3Anativeretweets&src=typed_query
