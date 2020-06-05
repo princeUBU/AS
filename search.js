@@ -1,5 +1,42 @@
 /* jshint esversion: 6 */
 
+const fromText = document.querySelector('#from-text');
+fromText.value='realdonaldtrump';
+fromText.onchange=updateHttpText;
+const clearFromButton=document.querySelector('#clearFrom-button');
+clearFromButton.onclick=function(){
+fromText.value='realdonaldtrump';
+updateHttpText();
+};
+const sinceText = document.querySelector('#since-text');
+sinceText.value='2019-01-20';
+sinceText.onchange=updateHttpText;
+const clearSinceButton=document.querySelector('#clearSince-button');
+clearSinceButton.onclick=function(){
+sinceText.value='';
+updateHttpText();
+};
+const untilText = document.querySelector('#until-text');
+untilText.value='2020-06-14';
+untilText.onchange=updateHttpText;
+const clearUntilButton=document.querySelector('#clearUntil-button');
+clearUntilButton.onclick=function(){
+untilText.value='';
+updateHttpText();
+};
+const aboutText = document.querySelector('#about-text');
+aboutText.style.width='600px';
+aboutText.value='enemy people';
+aboutText.onchange=updateHttpText;
+const clearAboutButton=document.querySelector('#clearAbout-button');
+clearAboutButton.onclick=function(){
+aboutText.value='';
+updateHttpText();
+};
+
+const httpText = document.querySelector('#http-text');
+
+
 const openButton = document.querySelector('#open-button');
 
     const aElement = document.createElement("a");
@@ -7,9 +44,25 @@ const openButton = document.querySelector('#open-button');
     document.body.appendChild(aElement);
     aElement.target="_blank";
     aElement.rel="noreferrer noopener";
-aElement.href='https://twitter.com/search?q=enemy of the%20people%20(from%3Arealdonaldtrump)&src=typed_query&f=live'
+    console.log(httpText.value)
+aElement.href=httpText.value;
 
 openButton.onclick=function(){
 	console.log('open')
 	aElement.click();
 }
+
+
+function updateHttpText(){
+httpText.value='https://twitter.com/search?q=';
+if (aboutText.value!==''){
+	httpText.value+='('+aboutText.value+')';
+}
+if (fromText.value!==''){
+	httpText.value+='(from:'+fromText.value+')';
+}
+
+httpText.value+='-filter:replies&src=typed_query&f=live';
+}
+
+updateHttpText();
